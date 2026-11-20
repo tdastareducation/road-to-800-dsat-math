@@ -401,6 +401,17 @@ header .brand{display:flex;align-items:center;gap:8px}
 .imp-copy{font-size:13px;font-weight:700;margin:0}
 @media(max-width:520px){.imp th{white-space:normal}}
 .frc{display:inline-block;vertical-align:middle;text-align:center;margin:0 .12em;line-height:1.15;font-size:.92em}.frc>.frn,.frc>.frd{display:block;padding:0 .22em;white-space:nowrap}.frc>.frn{border-bottom:1.3px solid currentColor}sup .frc,sub .frc{font-size:.9em;line-height:1.05}.opt .frc{font-size:.95em}
+@media(max-width:560px){header{padding-left:10px;padding-right:10px;gap:6px}header .hl{min-width:0;flex:1 1 auto;overflow:hidden}header .brand{min-width:0;overflow:hidden;text-overflow:ellipsis}.hbtns{gap:5px;flex:none}.hbtns .tmr:not([hidden])~#score{display:none}}
+.kbbar{position:fixed;left:0;top:0;box-sizing:border-box;width:100%;z-index:9999;display:flex;align-items:center;gap:10px;padding:7px 10px;background:#eef1f5;border-top:1px solid #c9d1db;box-shadow:0 -2px 10px rgba(0,0,0,.12);transform:translateY(-200%);font:600 14px system-ui,-apple-system,"Segoe UI",sans-serif;color:#495057}
+.kbbar[hidden]{display:none}
+.kbbar .kbv{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.kbbar .kbv b{font-size:18px;color:#1f2433;letter-spacing:.04em}
+.kbbar button{border:0;border-radius:10px;padding:9px 18px;font:800 15px system-ui,-apple-system,sans-serif;cursor:pointer}
+.kbbar .kbok{background:#1c7ed6;color:#fff}
+.kbbar .kbx{background:#dee2e6;color:#343a40;padding:9px 12px}
+html[data-theme="dark"] .kbbar,body.dark .kbbar{background:#232a35;border-color:#3a4352;color:#adb5bd}
+html[data-theme="dark"] .kbbar .kbv b,body.dark .kbbar .kbv b{color:#f1f3f5}
+.ansin{touch-action:manipulation;-webkit-user-select:text;user-select:text}
 .note{margin-top:10px;font-size:14px;color:var(--muted)}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}}
 .fig{display:flex;justify-content:center;margin:6px 0 14px}
@@ -1532,7 +1543,7 @@ function renderQ(i){
   const q=Q[i], t=q.test, done=EXAM.submitted(t), p=picks[i];
   pageEl.className="page";
   const answerUI = q.spr
-    ? `<div class="spr"><label for="sprIn">Your answer</label><div class="sprrow"><input id="sprIn" inputmode="decimal" autocomplete="off" spellcheck="false" maxlength="8" placeholder="e.g. 3/4 or 0.75" ${done?"disabled":""} value="${p!==undefined?esc(p):""}">${done?"":`<button class="btn" id="sprGo">✔ Save</button>`}</div>
+    ? `<div class="spr"><label for="sprIn">Your answer</label><div class="sprrow"><input id="sprIn" class="ansin" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" maxlength="8" placeholder="e.g. 3/4 or 0.75" ${done?"disabled":""} value="${p!==undefined?esc(p):""}">${done?"":`<button class="btn" id="sprGo">✓ Confirm</button>`}</div>
        ${done?"":`<div class="sprnote">Enter a number, a fraction (like 5/2) or a decimal — no units, %, $ or commas. You can change it until you submit.</div>`}</div>`
     : `<div class="opts">${q.o.map((tx,j)=>`<button class="opt" data-j="${j}"><span class="l">${L[j]}</span><span>${tx}</span></button>`).join("")}</div>`;
   pageEl.innerHTML=`<div class="qbar2 noprint"><button class="btn alt" id="homeB">⌂ Module ${TESTS[t-1].mod} home</button><button class="btn flagbtn" id="flagB"></button></div>
@@ -1569,7 +1580,8 @@ function renderQ(i){
         if(!v){ delete picks[i]; saved(); updScore(); return; }
         if(isNaN(numVal(v))){ note("Please enter a number, a fraction like 5/2, or a decimal like 2.5.","var(--bad)"); return; }
         picks[i]=v; saved(); updScore(); };
-      $("sprGo").onclick=save; inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); save(); } });
+      $("sprGo").onclick=()=>{ save(); inp.blur(); }; inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); save(); inp.blur(); } });
+      inp.addEventListener("ansconfirm",save);
       inp.addEventListener("change",save);
     } else {
       const opts=[...pageEl.querySelectorAll(".opt")];
@@ -2809,9 +2821,10 @@ const SOLP=(()=>{
   qbox.innerHTML=`<div class="qh">${tLbl(t)} · Question ${q.tn}</div>`;
   if(fig&&!(txt&&txt.contains(fig)))qbox.appendChild(fig.cloneNode(true));if(txt)qbox.appendChild(txt.cloneNode(true));
   abox.innerHTML='';
-  if(q.spr){abox.innerHTML=`<input class="solin" id="solIn" inputmode="decimal" autocomplete="off" maxlength="8" placeholder="Type your answer (e.g. 5/2)" ${done?'disabled':''} value="${p!==undefined?esc(p):''}"><div class="done" id="solNote"></div>`;
+  if(q.spr){abox.innerHTML=`<input class="solin ansin" id="solIn" type="text" inputmode="text" enterkeyhint="done" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" maxlength="8" placeholder="Type your answer (e.g. 5/2)" ${done?'disabled':''} value="${p!==undefined?esc(p):''}"><div class="done" id="solNote"></div>`;
    const inp=$('solIn'),nt=$('solNote');
    nt.textContent=done?(p===undefined?`Left blank · correct answer ${fmtKey(q)}`:isOK(q,p)?'✔ Correct':`✘ Correct answer: ${fmtKey(q)}`):'Saved automatically as you type · you can change it until you submit.';
+   if(!done)inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur()}});
    if(!done)inp.addEventListener('input',()=>{const v=inp.value.trim();if(!v){delete picks[qi];nt.textContent='No answer saved.'}else if(isNaN(numVal(v)))nt.textContent='Enter a number, a fraction like 5/2, or a decimal.';else{picks[qi]=v;nt.textContent='✔ Saved · you can change it until you submit.'}updScore()});}
   else{[...pageEl.querySelectorAll('.opt')].forEach((o,j)=>{const b=document.createElement('button');b.dataset.j=j;b.innerHTML=o.innerHTML;b.disabled=done;
     if(p===j)b.classList.add('sel');if(done){b.classList.remove('sel');if(j===q.a)b.classList.add('ok');else if(j===p)b.classList.add('bad')}abox.appendChild(b)});
@@ -2933,6 +2946,40 @@ window.addEventListener("DOMContentLoaded",()=>{ const d=loadSaved(); updScore()
 setInterval(save, 4000);
 document.addEventListener("visibilitychange",()=>{ if(document.hidden) save(); });
 window.addEventListener("pagehide", save);
+</script>
+<div class="kbbar" id="kbBar" hidden role="toolbar" aria-label="Answer keyboard"><span class="kbv">Answer: <b id="kbVal"></b></span><button type="button" class="kbx" id="kbClr" aria-label="Clear answer">⌫</button><button type="button" class="kbok" id="kbOk">✓ Confirm</button></div>
+<script>
+/* Grid-in answers on touch devices: a tap on the answer box always opens the device keyboard;
+   the ✓ Confirm key (keyboard bar) or the keyboard's own Done/Enter key saves the answer and closes the keyboard. */
+(()=>{
+ const bar=document.getElementById('kbBar'),val=document.getElementById('kbVal'),ok=document.getElementById('kbOk'),clr=document.getElementById('kbClr');
+ const touch=()=>matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;
+ let cur=null,tx=0,ty=0,moved=false;
+ const hit=(x,y)=>{ for(const el of document.elementsFromPoint(x,y)){ if(el.classList&&el.classList.contains('ansin')&&!el.disabled) return el; } return null; };
+ const focusIn=el=>{ if(document.activeElement!==el){ el.focus({preventScroll:true}); } const n=el.value.length; try{el.setSelectionRange(n,n)}catch(e){} };
+ // focus inside the touch gesture itself, so iOS and Android open the keyboard even when a layer (squared paper, swipe area) sits on top
+ document.addEventListener('touchstart',e=>{ const t=e.touches[0]; tx=t.clientX; ty=t.clientY; moved=false; },{passive:true,capture:true});
+ document.addEventListener('touchmove',e=>{ const t=e.touches[0]; if(Math.abs(t.clientX-tx)+Math.abs(t.clientY-ty)>12) moved=true; },{passive:true,capture:true});
+ document.addEventListener('touchend',e=>{ if(moved) return; const t=e.changedTouches[0]; const el=hit(t.clientX,t.clientY); if(el){ if(e.cancelable) e.preventDefault(); focusIn(el); } },{passive:false,capture:true});
+ document.addEventListener('click',e=>{ const el=e.target.closest&&e.target.closest('.ansin'); if(el&&!el.disabled) focusIn(el); },true);
+ const place=()=>{ if(bar.hidden) return; const vv=window.visualViewport; const h=bar.offsetHeight;
+   const top=vv?vv.offsetTop+vv.height-h:innerHeight-h; const w=vv?vv.width:document.documentElement.clientWidth;
+   bar.style.width=w+'px'; bar.style.transform=`translate(${vv?vv.offsetLeft:0}px,${Math.max(0,top)}px)`; };
+ const show=el=>{ cur=el; if(!touch()) return; val.textContent=el.value||'—'; bar.hidden=false; place();
+   setTimeout(()=>{ place(); el.scrollIntoView({block:'center',behavior:'smooth'}); },350); setTimeout(place,700); };
+ const hide=()=>{ bar.hidden=true; cur=null; };
+ document.addEventListener('focusin',e=>{ if(e.target.classList&&e.target.classList.contains('ansin')) show(e.target); });
+ document.addEventListener('focusout',e=>{ if(e.target===cur) setTimeout(()=>{ if(document.activeElement!==cur) hide(); },60); });
+ document.addEventListener('input',e=>{ if(e.target===cur) val.textContent=cur.value||'—'; });
+ const confirm=()=>{ const el=cur; if(!el) return; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('ansconfirm'));
+   el.dispatchEvent(new Event('change',{bubbles:true})); el.blur(); hide(); };
+ // keep the keyboard open while the bar's own buttons are pressed
+ [ok,clr].forEach(b=>{ b.addEventListener('pointerdown',e=>e.preventDefault()); b.addEventListener('mousedown',e=>e.preventDefault()); });
+ ok.addEventListener('click',confirm);
+ clr.addEventListener('click',()=>{ if(!cur) return; cur.value=cur.value.slice(0,-1); cur.dispatchEvent(new Event('input',{bubbles:true})); focusIn(cur); });
+ if(window.visualViewport){ visualViewport.addEventListener('resize',place); visualViewport.addEventListener('scroll',place); }
+ addEventListener('resize',place);
+})();
 </script>
 </body>
 </html>
